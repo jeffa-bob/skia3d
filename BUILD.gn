@@ -2599,7 +2599,20 @@ if (skia_enable_tools) {
       ]
     }
   }
+  if (skia_use_gl && !skia_use_angle && (is_linux || is_win || is_mac)) {
+    test_app("3Dworld") {
+      sources = [ "3Dworld/3Dworld.cpp" ]
+      libs = []
 
+      deps = [
+        ":flags",
+        ":gpu_tool_utils",
+        ":sk_app",
+        ":skia",
+        ":tool_utils",
+      ]
+    }
+  }
   if (skia_use_gl && (is_linux || is_mac || is_ios)) {
     test_app("SkiaSDLExample") {
       sources = [ "example/SkiaSDLExample.cpp" ]
