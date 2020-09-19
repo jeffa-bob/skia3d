@@ -55,7 +55,7 @@ void _3Dworld::onBackendCreated() {
 void _3Dworld::onPaint(SkSurface* surface) {
     SkCanvas *canvas = surface->getCanvas();
     // Clear background
-    canvas->clear(SK_ColorWHITE);
+    canvas->clear(SK_ColorBLACK);
 
     curwor.renderscreen(canvas);
 
