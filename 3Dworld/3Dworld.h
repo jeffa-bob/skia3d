@@ -1,6 +1,7 @@
 #include <math.h>
 #include <array>
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <future>
 
@@ -21,7 +22,8 @@ struct color {
 struct tri {
     _3dvect tri[3];
     color col;
-    _3dvect normal;
+    _3dvect normal[3];
+    bool normset = false;
 };
 // camera view
 struct camera {
@@ -119,18 +121,28 @@ _3dvect crossproduct(_3dvect U, _3dvect V) {
 }
 
 // returns a ray of the trianges normal
-ray trinormal(tri& curtri) {
+void trinormal(tri &curtri) {
     _3dvect U = curtri.tri[1];
     sub_3dvect(U, curtri.tri[0]);
     _3dvect V = curtri.tri[2];
     sub_3dvect(V, curtri.tri[0]);
-    ray nonunit = {{curtri.tri[0], crossproduct(U, V)}};
-    return nonunit;
+    curtri.normal[0] = crossproduct(U, V);
+    U = curtri.tri[2];
+    sub_3dvect(U, curtri.tri[1]);
+    V = curtri.tri[0];
+    sub_3dvect(V, curtri.tri[1]);
+    curtri.normal[1] = crossproduct(U,V);
+    U = curtri.tri[0];
+    sub_3dvect(U, curtri.tri[2]);
+    V = curtri.tri[1];
+    sub_3dvect(V, curtri.tri[2]);
+    curtri.normal[2] = crossproduct(U,V);
+    curtri.normset = true;
 }
 
 // returns true if a ray intersects a triangle
 bool intersecttri(tri& curtri, ray check) {
-    _3dvect normal = curtri.normal;
+    _3dvect normal = curtri.normal[0];
     float d = dotproduct(normal, curtri.tri[0]);
     float t = ((dotproduct(normal, check.raypoint[0]) + d) / dotproduct(normal, check.raypoint[1]));
     if (t < 0) {
@@ -178,8 +190,9 @@ public:
     // vector of all of the meshes in the current world
     std::vector<tri> triworld = 
     {
-        {{{100, 50, 50}, {0, 50, 50}, {100, 100, 50}}, {0, 255, 0}, {0,0,0}},
-        {{{450, 50, 50}, {300, 50, 50}, {450, 100, 50}}, {0, 0, 255}, {0,0,0}}      
+        {{{100, 50, 10}, {0, 50, 170}, {100, 100, 25}}, {0, 255, 0}, {{0,0,0},{0,0,0},{0,0,0}}, false},
+        {{{450, 50, 50}, {300, 50, 50}, {450, 100, 50}}, {0, 0, 255}, {{0,0,0},{0,0,0},{0,0,0}}, false},      
+        {{{-100, 50, 50}, {0, 50, 50}, {-100, 100, 50}}, {0, 255, 0}, {{0,0,0},{0,0,0},{0,0,0}}, false}      
     };
 
     int height;
@@ -190,8 +203,6 @@ public:
     float thickness;
 
     void drawtri(const tri& rti, SkCanvas* window) {
-        int height = window->getSurface()->height();
-        int width = window->getSurface()->width();
         SkPath path;
         SkPoint* points = new SkPoint[3];
         for (int i = 0; i < 3; i++) {
@@ -205,12 +216,25 @@ public:
         SkPaint p;
         p.setAntiAlias(true);
         _3dvect camdir = cam.camdir.raypoint[1];
+
         sub_3dvect(camdir, cam.camdir.raypoint[0]);
-        float dot = abs(normalizedot(rti.normal, camdir));
-        p.setARGB(255, rti.col.r*dot, rti.col.g*dot, rti.col.b*dot);
+        float dot0 = abs(normalizedot(rti.normal[0], camdir));
+        float dot1 = abs(normalizedot(rti.normal[1], camdir));
+        float dot2 = abs(normalizedot(rti.normal[2], camdir));
+
+        SkColor *colors = new SkColor[3];
+        colors[0] = SkColorSetRGB(rti.col.r*dot0, rti.col.g*dot0, rti.col.b*dot0, 255);
+        colors[1] = SkColorSetRGB(rti.col.r*dot1, rti.col.g*dot1, rti.col.b*dot1, 255);
+        colors[2] = SkColorSetRGB(rti.col.r*dot2, rti.col.g*dot2, rti.col.b*dot2, 255);
+
+        p.setShader(SkGradientShader::MakeLinear(points, colors, nullptr, 3, SkTileMode::kClamp,
+                                                 0, nullptr));
         window->drawPath(path, p);
     }
 
+    bool sorttri(const tri &a, const tri &b){
+        return a.tri[0].z < b.tri[0].z;
+    }
     // builds the 2d pixel array of colors and displayes it to the screen
     void renderscreen(SkCanvas* window) {
         //std::cout << "Drawing triangles\n";
@@ -221,8 +245,8 @@ public:
         // sub_3dvect(adjustdir, cam.pos);
         // float halfwidth = tan(cam.fov / 2);
         for (auto&& i : triworld) {
-            if (_3dvectequal(i.normal,_3dvect({0,0,0}))){
-                i.normal = trinormal(i).raypoint[1];}
+            if(!i.normset)
+                trinormal(i);
             drawtri(i,window);
         }
     };
@@ -242,7 +266,7 @@ public:
             if (tricheck) {
                 _3dvect adjustray = increm.raypoint[1];
                 sub_3dvect(adjustray, increm.raypoint[0]);
-                _3dvect adjustnorm = curtri.normal;
+                _3dvect adjustnorm = curtri.normal[0];
                 sub_3dvect(adjustnorm, curtri.tri[0]);
                 float greyfact = normalizedot(adjustray, adjustnorm);
                 return {(int)(curtri.col.r * greyfact), (int)(curtri.col.g * greyfact),

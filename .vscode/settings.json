@@ -1,0 +1,7 @@
+{
+  "files.associations": {
+    "*.pl": "perl",
+    "algorithm": "cpp",
+    "cstdlib": "cpp"
+  }
+}
