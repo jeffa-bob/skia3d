@@ -1,9 +1,9 @@
 #include <math.h>
-#include <array>
-#include <iostream>
 #include <algorithm>
-#include <vector>
+#include <array>
 #include <future>
+#include <iostream>
+#include <vector>
 
 namespace world {
 // 3 floats that represent a point in 3d space
@@ -102,6 +102,9 @@ float magnitudeofaray(ray ray) {
             ((ray.raypoint[0].y - ray.raypoint[1].y) * (ray.raypoint[0].y - ray.raypoint[1].y)) +
             ((ray.raypoint[0].z - ray.raypoint[1].z) * (ray.raypoint[0].z - ray.raypoint[1].z)));
 }
+float magnitudeofavect(const _3dvect& vect) {
+    return (float)sqrt(((vect.x) * (vect.x)) + ((vect.y) * (vect.y)) + ((vect.z) * (vect.z)));
+}
 // gives unit vector of a ray as a ray from the first point of the ray
 ray unitvectorofray(ray& rays) {
     float magnitute = magnitudeofaray(rays);
@@ -110,6 +113,14 @@ ray unitvectorofray(ray& rays) {
               rays.raypoint[1].z / magnitute}}};
 }
 
+_3dvect unitvector_3dvect(const _3dvect& vect) {
+    float magnitute = magnitudeofavect(vect);
+    return {vect.x / magnitute, vect.y / magnitute, vect.z / magnitute};
+}
+_3dvect vectscaler(const _3dvect& vect, float mag) {
+    _3dvect unit = unitvector_3dvect(vect);
+    return {unit.x*mag,unit.y*mag,unit.z*mag};
+}
 // dot product of two vectors
 float dotproduct(_3dvect n, _3dvect tri0) {
     return ((n.x * tri0.x) + (n.y * tri0.y) + (n.z * tri0.z));
@@ -121,7 +132,7 @@ _3dvect crossproduct(_3dvect U, _3dvect V) {
 }
 
 // returns a ray of the trianges normal
-void trinormal(tri &curtri) {
+void trinormal(tri& curtri) {
     _3dvect U = curtri.tri[1];
     sub_3dvect(U, curtri.tri[0]);
     _3dvect V = curtri.tri[2];
@@ -131,12 +142,12 @@ void trinormal(tri &curtri) {
     sub_3dvect(U, curtri.tri[1]);
     V = curtri.tri[0];
     sub_3dvect(V, curtri.tri[1]);
-    curtri.normal[1] = crossproduct(U,V);
+    curtri.normal[1] = crossproduct(U, V);
     U = curtri.tri[0];
     sub_3dvect(U, curtri.tri[2]);
     V = curtri.tri[1];
     sub_3dvect(V, curtri.tri[2]);
-    curtri.normal[2] = crossproduct(U,V);
+    curtri.normal[2] = crossproduct(U, V);
     curtri.normset = true;
 }
 
@@ -187,13 +198,20 @@ float normalizedot(_3dvect u, _3dvect v) {
 // class with list of objects to be rendered onto screen; buildarray function renders scene
 class currentworld {
 public:
+float naer_clipping_plane = 40.0f;
     // vector of all of the meshes in the current world
-    std::vector<tri> triworld = 
-    {
-        {{{100, 50, 10}, {0, 50, 170}, {100, 100, 25}}, {0, 255, 0}, {{0,0,0},{0,0,0},{0,0,0}}, false},
-        {{{450, 50, 50}, {300, 50, 50}, {450, 100, 50}}, {0, 0, 255}, {{0,0,0},{0,0,0},{0,0,0}}, false},      
-        {{{-100, 50, 50}, {0, 50, 50}, {-100, 100, 50}}, {0, 255, 0}, {{0,0,0},{0,0,0},{0,0,0}}, false}      
-    };
+    std::vector<tri> triworld = {{{{100, 50, 10}, {0, 50, 170}, {100, 100, 25}},
+                                  {0, 255, 0},
+                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+                                  false},
+                                 {{{450, 50, 50}, {300, 50, 50}, {450, 100, 50}},
+                                  {0, 0, 255},
+                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+                                  false},
+                                 {{{-100, 50, 50}, {0, 50, 50}, {-100, 100, 500}},
+                                  {255, 0, 0},
+                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+                                  false}};
 
     int height;
     int width;
@@ -206,12 +224,11 @@ public:
         SkPath path;
         SkPoint* points = new SkPoint[3];
         for (int i = 0; i < 3; i++) {
-            SkScalar x = rti.tri[i].x + width / 2;
-            SkScalar y = rti.tri[i].y + height / 2;
-            //std::cout << x << " " << y << std::endl;
-            points[i].set(x, y);
+            points[i].fX = ((naer_clipping_plane * rti.tri[i].x)/-rti.tri[i].z) + width / 2;
+            points[i].fY = ((naer_clipping_plane * rti.tri[i].y)/-rti.tri[i].z) + height / 2;
+            //std::cout << points[i].fX << " " << points[i].fY << std::endl;
         }
-        //std::cout << "Drew triangle\n";
+        // std::cout << "Drew triangle\n";
         path.addPoly(points, 3, true);
         SkPaint p;
         p.setAntiAlias(true);
@@ -219,25 +236,14 @@ public:
 
         sub_3dvect(camdir, cam.camdir.raypoint[0]);
         float dot0 = abs(normalizedot(rti.normal[0], camdir));
-        float dot1 = abs(normalizedot(rti.normal[1], camdir));
-        float dot2 = abs(normalizedot(rti.normal[2], camdir));
-
-        SkColor *colors = new SkColor[3];
-        colors[0] = SkColorSetRGB(rti.col.r*dot0, rti.col.g*dot0, rti.col.b*dot0, 255);
-        colors[1] = SkColorSetRGB(rti.col.r*dot1, rti.col.g*dot1, rti.col.b*dot1, 255);
-        colors[2] = SkColorSetRGB(rti.col.r*dot2, rti.col.g*dot2, rti.col.b*dot2, 255);
-
-        p.setShader(SkGradientShader::MakeLinear(points, colors, nullptr, 3, SkTileMode::kClamp,
-                                                 0, nullptr));
+        p.setARGB(255, rti.col.r*dot0,rti.col.g*dot0,rti.col.b*dot0);
         window->drawPath(path, p);
     }
 
-    bool sorttri(const tri &a, const tri &b){
-        return a.tri[0].z < b.tri[0].z;
-    }
+    bool sorttri(const tri& a, const tri& b) { return a.tri[0].z < b.tri[0].z; }
     // builds the 2d pixel array of colors and displayes it to the screen
     void renderscreen(SkCanvas* window) {
-        //std::cout << "Drawing triangles\n";
+        // std::cout << "Drawing triangles\n";
 
         height = window->getSurface()->height();
         width = window->getSurface()->width();
@@ -245,9 +251,8 @@ public:
         // sub_3dvect(adjustdir, cam.pos);
         // float halfwidth = tan(cam.fov / 2);
         for (auto&& i : triworld) {
-            if(!i.normset)
-                trinormal(i);
-            drawtri(i,window);
+            if (!i.normset) trinormal(i);
+            drawtri(i, window);
         }
     };
 
