@@ -7,6 +7,7 @@
 #include "include/core/SkSurface.h"
 #include "include/effects/SkGradientShader.h"
 #include "3Dworld/3Dworld.h"
+#include "gainput/gainput.h"
 
 
 using namespace sk_app;
