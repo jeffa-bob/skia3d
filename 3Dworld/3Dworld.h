@@ -85,18 +85,18 @@ void mul_3dvect(_3dvect& fir, const _3dvect sec) {
 }
 
 // returns true if the first _3dvect is greater than the second on all axis
-bool greater_3dvect(_3dvect fir, _3dvect sec) {
+bool greater_3dvect(const _3dvect &fir, const _3dvect &sec) {
     return fir.x > sec.x && fir.y > sec.y && fir.z > sec.z;
 }
 
 // scales ray by unit vector of ray multiplied by magnitude; inplace
-void rayscaler(ray& rays, float mag, ray unitray) {
+void rayscaler(ray& rays, const float &mag, const ray &unitray) {
     rays = {{{unitray.raypoint[0]},
              {unitray.raypoint[1].x * mag, unitray.raypoint[1].y * mag,
               unitray.raypoint[1].z * mag}}};
 }
 // return the magnitute of a ray in a float, decimal will be rounded
-float magnitudeofaray(ray ray) {
+float magnitudeofaray(const ray &ray) {
     return (float)sqrt(
             ((ray.raypoint[0].x - ray.raypoint[1].x) * (ray.raypoint[0].x - ray.raypoint[1].x)) +
             ((ray.raypoint[0].y - ray.raypoint[1].y) * (ray.raypoint[0].y - ray.raypoint[1].y)) +
@@ -106,7 +106,7 @@ float magnitudeofavect(const _3dvect& vect) {
     return (float)sqrt(((vect.x) * (vect.x)) + ((vect.y) * (vect.y)) + ((vect.z) * (vect.z)));
 }
 // gives unit vector of a ray as a ray from the first point of the ray
-ray unitvectorofray(ray& rays) {
+ray unitvectorofray(const ray& rays) {
     float magnitute = magnitudeofaray(rays);
     return {{{rays.raypoint[0]},
              {rays.raypoint[1].x / magnitute, rays.raypoint[1].y / magnitute,
@@ -117,17 +117,17 @@ _3dvect unitvector_3dvect(const _3dvect& vect) {
     float magnitute = magnitudeofavect(vect);
     return {vect.x / magnitute, vect.y / magnitute, vect.z / magnitute};
 }
-_3dvect vectscaler(const _3dvect& vect, float mag) {
+_3dvect vectscaler(const _3dvect& vect, const float &mag) {
     _3dvect unit = unitvector_3dvect(vect);
     return {unit.x*mag,unit.y*mag,unit.z*mag};
 }
 // dot product of two vectors
-float dotproduct(_3dvect n, _3dvect tri0) {
+float dotproduct(const _3dvect &n, const _3dvect &tri0) {
     return ((n.x * tri0.x) + (n.y * tri0.y) + (n.z * tri0.z));
 }
 
 // cross product of two vectors
-_3dvect crossproduct(_3dvect U, _3dvect V) {
+_3dvect crossproduct(const _3dvect &U, const _3dvect &V) {
     return {((U.y * V.z) - (U.z * V.y)), ((U.z * V.x) - (U.x * V.z)), ((U.x * V.y) - (U.y * V.x))};
 }
 
@@ -152,7 +152,7 @@ void trinormal(tri& curtri) {
 }
 
 // returns true if a ray intersects a triangle
-bool intersecttri(tri& curtri, ray check) {
+bool intersecttri(const tri& curtri,const ray &check) {
     _3dvect normal = curtri.normal[0];
     float d = dotproduct(normal, curtri.tri[0]);
     float t = ((dotproduct(normal, check.raypoint[0]) + d) / dotproduct(normal, check.raypoint[1]));
@@ -191,7 +191,7 @@ bool intersecttri(tri& curtri, ray check) {
     if (h < 0) return false;
     return true;
 }
-float normalizedot(_3dvect u, _3dvect v) {
+float normalizedot(const _3dvect &u, const _3dvect &v) {
     float x = dotproduct(u, v);
     return abs(x / (magnitudeofaray({{v, {0, 0, 0}}}) * (magnitudeofaray({{u, {0, 0, 0}}}))));
 }
