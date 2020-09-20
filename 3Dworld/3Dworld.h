@@ -200,7 +200,7 @@ class currentworld {
 public:
 float naer_clipping_plane = 40.0f;
     // vector of all of the meshes in the current world
-    std::vector<tri> triworld = {{{{100, 50, 10}, {0, 50, 170}, {100, 100, 25}},
+    std::vector<tri> triworld = {{{{100, 50, 10}, {0, 50, 30}, {100, 100, 25}},
                                   {0, 255, 0},
                                   {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
                                   false},
