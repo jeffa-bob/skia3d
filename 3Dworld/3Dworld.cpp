@@ -1,19 +1,20 @@
 
 
+#include "3Dworld/3Dworld.h"
 #include "3Dworld/3Dworld.skia.h"
+#include "3Dworld/gainput/gainput.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkFont.h"
 #include "include/core/SkGraphics.h"
 #include "include/core/SkSurface.h"
 #include "include/effects/SkGradientShader.h"
-#include "3Dworld/3Dworld.h"
-#include "gainput/gainput.h"
-
 
 using namespace sk_app;
 using namespace world;
 
 currentworld curwor;
+gainput::InputManager manager;
+const gainput::DeviceId mouseId = manager.CreateDevice<gainput::InputDeviceMouse>();
 
 Application* Application::Create(int argc, char** argv, void* platformData) {
     return new _3Dworld(argc, argv, platformData);
@@ -30,6 +31,8 @@ _3Dworld::_3Dworld(int argc, char** argv, void* platformData)
     fWindow->pushLayer(this);
 
     fWindow->attach(fBackendType);
+    manager.SetDisplaySize(fWindow->height(), fWindow->width());
+    mouseId = manager.CreateDevice<gainput::InputDeviceMouse>();
 }
 
 _3Dworld::~_3Dworld() {
@@ -54,9 +57,16 @@ void _3Dworld::onBackendCreated() {
 }
 
 void _3Dworld::onPaint(SkSurface* surface) {
-    SkCanvas *canvas = surface->getCanvas();
+    SkCanvas* canvas = surface->getCanvas();
     // Clear background
     canvas->clear(SK_ColorBLACK);
+
+    if (gainput::InputDeviceMouse::GetBool(gainput::MouseButton3)) {
+        curwor.naer_clipping_plane += 0.2;
+    }
+    if (gainput::InputDeviceMouse::GetBool(gainput::MouseButton4)) {
+        curwor.naer_clipping_plane -= 0.2;
+    }
 
     curwor.renderscreen(canvas);
 
@@ -64,6 +74,7 @@ void _3Dworld::onPaint(SkSurface* surface) {
 }
 
 void _3Dworld::onIdle() {
+    manager.Update();
     // Just re-paint continously
     fWindow->inval();
 }
