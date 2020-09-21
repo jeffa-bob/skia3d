@@ -92,6 +92,12 @@ bool _3Dworld::onChar(SkUnichar c, skui::ModifierKey modifiers) {
     case 'o':
         curwor.cam.pos.y -= 0.2f;
         break;
+    case 'p':
+        curwor.naer_clipping_plane += 0.2f;
+        break;
+    case ';':
+        curwor.naer_clipping_plane -= 0.2f;
+        break;
     default:
         break;
     }
