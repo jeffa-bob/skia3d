@@ -1,6 +1,5 @@
 
 
-
 #include "3Dworld/3Dworld.skia.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkFont.h"
@@ -27,7 +26,6 @@ _3Dworld::_3Dworld(int argc, char** argv, void* platformData)
 
     // register callbacks
     fWindow->pushLayer(this);
-
     fWindow->attach(fBackendType);
 }
 
@@ -57,7 +55,6 @@ void _3Dworld::onPaint(SkSurface* surface) {
     // Clear background
     canvas->clear(SK_ColorBLACK);
 
-
     curwor.renderscreen(canvas);
 
     canvas->restore();
@@ -74,6 +71,29 @@ bool _3Dworld::onChar(SkUnichar c, skui::ModifierKey modifiers) {
                                                                    : Window::kRaster_BackendType;
         fWindow->detach();
         fWindow->attach(fBackendType);
+    }
+    switch (c)
+    {
+    case 'i':
+        curwor.cam.pos.z += 0.2f;
+        break;
+    case 'j':
+        curwor.cam.pos.x += 0.2f;
+        break;
+    case 'k':
+        curwor.cam.pos.z += 0.2f;
+        break;
+    case 'l':
+        curwor.cam.pos.x -= 0.2f;
+        break;
+    case 'u':
+        curwor.cam.pos.y += 0.2f;
+        break;
+    case 'o':
+        curwor.cam.pos.y -= 0.2f;
+        break;
+    default:
+        break;
     }
     return true;
 }

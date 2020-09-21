@@ -200,27 +200,27 @@ class currentworld {
 public:
 float naer_clipping_plane = 100.0f;
     // vector of all of the meshes in the current world
-    std::vector<tri> triworld = { {{{-1, 0, 100}, {-1, 100, 100}, {-100, 0, 200}},
+    std::vector<tri> triworld = { {{{-1, 20, 100}, {-1, 120, 100}, {-100, 20, 200}},
                                   {0, 255, 0},
                                   {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
                                   false},
-                                  {{{-100, 100, 200}, {-1, 100, 100}, {-100, 0, 200}},
+                                  {{{-100, 120, 200}, {-1, 120, 100}, {-100, 20, 200}},
                                   {0, 255, 0},
                                   {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
                                   false},
-                                  {{{1, 0, 100}, {1, 100, 100}, {100, 0, 200}},
+                                  {{{1, 20, 100}, {1, 120, 100}, {100, 20, 200}},
                                   {0, 255, 0},
                                   {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
                                   false},
-                                  {{{100, 100, 200}, {1, 100, 100}, {100, 0, 200}},
+                                  {{{100, 120, 200}, {1, 120, 100}, {100, 20, 200}},
                                   {0, 255, 0},
                                   {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
                                   false},
-                                  {{{0, 0, 100}, {100, 0, 200}, {100, 0, 300}},
+                                  {{{-1, 20, 100}, {-100, 20, 200}, {-1, 20, 300}},
                                   {0, 255, 0},
                                   {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
                                   false},
-                                  {{{0, 0, 100}, {-100, 0, 200}, {-100, 0, 300}},
+                                  {{{1, 20, 100}, {100, 20, 200}, {1, 20, 300}},
                                   {0, 255, 0},
                                   {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
                                   false},};
@@ -230,14 +230,16 @@ float naer_clipping_plane = 100.0f;
     // the camera with width, height(in pixels), field of view, and distance that rays can go
     camera cam = {600, 600, {0, 0, 0}, {{cam.pos, {0, 0, 1}}}, 1.396263f};
 
+    _3dvect lightsource = {0,50,400};
+
     float thickness;
 
     void drawtri(const tri& rti, SkCanvas* window) {
         SkPath path;
         SkPoint* points = new SkPoint[3];
         for (int i = 0; i < 3; i++) {
-            points[i].fX = ((naer_clipping_plane * rti.tri[i].x)/-rti.tri[i].z) + width / 2;
-            points[i].fY = ((naer_clipping_plane * rti.tri[i].y)/-rti.tri[i].z) + height / 2;
+            points[i].fX = ((naer_clipping_plane * (rti.tri[i].x-cam.pos.x))/-(rti.tri[i].z-cam.pos.z)) + width / 2;
+            points[i].fY = ((naer_clipping_plane * (rti.tri[i].y-cam.pos.y))/-(rti.tri[i].z-cam.pos.z)) + height / 2;
             //std::cout << points[i].fX << " " << points[i].fY << std::endl;
         }
         // std::cout << "Drew triangle\n";
@@ -247,7 +249,12 @@ float naer_clipping_plane = 100.0f;
         _3dvect camdir = cam.camdir.raypoint[1];
 
         sub_3dvect(camdir, cam.camdir.raypoint[0]);
-        float dot0 = abs(normalizedot(rti.normal[0], camdir));
+        _3dvect verttolight = rti.tri[0];
+        sub_3dvect(verttolight, lightsource);
+        _3dvect camtovert = rti.tri[0];
+        sub_3dvect(camtovert, cam.pos);
+        float dot0 = abs(normalizedot(camtovert,verttolight));
+        //std::cout<<dot0<<std::endl;
         p.setARGB(255, rti.col.r*dot0,rti.col.g*dot0,rti.col.b*dot0);
         window->drawPath(path, p);
     }
@@ -255,7 +262,7 @@ float naer_clipping_plane = 100.0f;
     bool sorttri(const tri& a, const tri& b) { return a.tri[0].z < b.tri[0].z; }
     // builds the 2d pixel array of colors and displayes it to the screen
     void renderscreen(SkCanvas* window) {
-        // std::cout << "Drawing triangles\n";
+        std::cout << cam.pos.x << " "<< cam.pos.y << " "<< cam.pos.z << " "<< naer_clipping_plane << "\n" ;
 
         height = window->getSurface()->height();
         width = window->getSurface()->width();
