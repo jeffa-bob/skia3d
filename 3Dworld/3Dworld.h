@@ -29,7 +29,7 @@ struct tri {
 struct camera {
     int width, height;
     _3dvect pos;
-    ray camdir;
+    _3dvect camdir;
     float fov;
 };
 
@@ -85,18 +85,18 @@ void mul_3dvect(_3dvect& fir, const _3dvect sec) {
 }
 
 // returns true if the first _3dvect is greater than the second on all axis
-bool greater_3dvect(const _3dvect &fir, const _3dvect &sec) {
+bool greater_3dvect(const _3dvect& fir, const _3dvect& sec) {
     return fir.x > sec.x && fir.y > sec.y && fir.z > sec.z;
 }
 
 // scales ray by unit vector of ray multiplied by magnitude; inplace
-void rayscaler(ray& rays, const float &mag, const ray &unitray) {
+void rayscaler(ray& rays, const float& mag, const ray& unitray) {
     rays = {{{unitray.raypoint[0]},
              {unitray.raypoint[1].x * mag, unitray.raypoint[1].y * mag,
               unitray.raypoint[1].z * mag}}};
 }
 // return the magnitute of a ray in a float, decimal will be rounded
-float magnitudeofaray(const ray &ray) {
+float magnitudeofaray(const ray& ray) {
     return (float)sqrt(
             ((ray.raypoint[0].x - ray.raypoint[1].x) * (ray.raypoint[0].x - ray.raypoint[1].x)) +
             ((ray.raypoint[0].y - ray.raypoint[1].y) * (ray.raypoint[0].y - ray.raypoint[1].y)) +
@@ -117,17 +117,17 @@ _3dvect unitvector_3dvect(const _3dvect& vect) {
     float magnitute = magnitudeofavect(vect);
     return {vect.x / magnitute, vect.y / magnitute, vect.z / magnitute};
 }
-_3dvect vectscaler(const _3dvect& vect, const float &mag) {
+_3dvect vectscaler(const _3dvect& vect, const float& mag) {
     _3dvect unit = unitvector_3dvect(vect);
-    return {unit.x*mag,unit.y*mag,unit.z*mag};
+    return {unit.x * mag, unit.y * mag, unit.z * mag};
 }
 // dot product of two vectors
-float dotproduct(const _3dvect &n, const _3dvect &tri0) {
+float dotproduct(const _3dvect& n, const _3dvect& tri0) {
     return ((n.x * tri0.x) + (n.y * tri0.y) + (n.z * tri0.z));
 }
 
 // cross product of two vectors
-_3dvect crossproduct(const _3dvect &U, const _3dvect &V) {
+_3dvect crossproduct(const _3dvect& U, const _3dvect& V) {
     return {((U.y * V.z) - (U.z * V.y)), ((U.z * V.x) - (U.x * V.z)), ((U.x * V.y) - (U.y * V.x))};
 }
 
@@ -152,7 +152,7 @@ void trinormal(tri& curtri) {
 }
 
 // returns true if a ray intersects a triangle
-bool intersecttri(const tri& curtri,const ray &check) {
+bool intersecttri(const tri& curtri, const ray& check) {
     _3dvect normal = curtri.normal[0];
     float d = dotproduct(normal, curtri.tri[0]);
     float t = ((dotproduct(normal, check.raypoint[0]) + d) / dotproduct(normal, check.raypoint[1]));
@@ -191,79 +191,123 @@ bool intersecttri(const tri& curtri,const ray &check) {
     if (h < 0) return false;
     return true;
 }
-float normalizedot(const _3dvect &u, const _3dvect &v) {
+float normalizedot(const _3dvect& u, const _3dvect& v) {
     float x = dotproduct(u, v);
     return abs(x / (magnitudeofaray({{v, {0, 0, 0}}}) * (magnitudeofaray({{u, {0, 0, 0}}}))));
 }
+
+bool sort(const tri& a, const tri& b) {
+    if (a.tri[0].z < b.tri[0].z) {
+        return false;
+    }
+    if (a.tri[1].z < b.tri[1].z) {
+        return false;
+    }
+    if (a.tri[2].z < b.tri[2].z) {
+        return false;
+    }
+    return true;
+}
+
 // class with list of objects to be rendered onto screen; buildarray function renders scene
 class currentworld {
 public:
-float naer_clipping_plane = 100.0f;
+    float naer_clipping_plane = 10.0f;
     // vector of all of the meshes in the current world
-    std::vector<tri> triworld = { {{{-1, 20, 100}, {-1, 120, 100}, {-100, 20, 200}},
-                                  {0, 255, 0},
-                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-                                  false},
-                                  {{{-100, 120, 200}, {-1, 120, 100}, {-100, 20, 200}},
-                                  {0, 255, 0},
-                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-                                  false},
-                                  {{{1, 20, 100}, {1, 120, 100}, {100, 20, 200}},
-                                  {0, 255, 0},
-                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-                                  false},
-                                  {{{100, 120, 200}, {1, 120, 100}, {100, 20, 200}},
-                                  {0, 255, 0},
-                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-                                  false},
-                                  {{{-1, 20, 100}, {-100, 20, 200}, {-1, 20, 300}},
-                                  {0, 255, 0},
-                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-                                  false},
-                                  {{{1, 20, 100}, {100, 20, 200}, {1, 20, 300}},
-                                  {0, 255, 0},
-                                  {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
-                                  false},};
+    std::vector<tri> triworld = {
+            {{{0, 0, 1000}, {1000, 0, 1000}, {1000, 1000, 1000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+            {{{0, 0, 1000}, {0, 1000, 1000}, {1000, 1000, 1000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+            {{{0, 0, 2000}, {1000, 0, 2000}, {1000, 1000, 2000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+            {{{0, 0, 2000}, {0, 1000, 2000}, {1000, 1000, 2000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+            {{{0, 0, 1000}, {1000, 0, 1000}, {1000, 0, 2000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+            {{{1000, 0, 1000}, {1000, 0, 2000}, {0, 0, 2000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+            {{{0, 1000, 1000}, {1000, 1000, 1000}, {1000, 1000, 2000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+            {{{1000, 1000, 1000}, {1000, 1000, 2000}, {0, 1000, 2000}},
+             {0, 255, 0},
+             {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
+             false},
+    };
 
     int height;
     int width;
     // the camera with width, height(in pixels), field of view, and distance that rays can go
-    camera cam = {600, 600, {0, 0, 0}, {{cam.pos, {0, 0, 1}}}, 1.396263f};
+    camera cam = {600, 600, {0, 0, 0}, {0, 0, 0}, 1.396263f};
 
-    _3dvect lightsource = {0,50,400};
+    _3dvect lightsource = {0, 50, 400};
 
     float thickness;
+
+    bool isSorted = false;
+
+    _3dvect applycam(const _3dvect& vect) {
+        _3dvect final = vect;
+
+        final.x = (final.x * cosf(cam.camdir.y) - final.z * sinf(cam.camdir.y));
+        final.z = (final.x * sinf(cam.camdir.y) + final.z * cosf(cam.camdir.y));
+        // final.x = (final.x*cosf(cam.camdir.z)-final.y*sinf(cam.camdir.z));
+        // final.y = (final.x*sinf(cam.camdir.z)+final.y*cosf(cam.camdir.z));
+        // final.y = (final.y*cosf(cam.camdir.x)-final.z*sinf(cam.camdir.x));
+        // final.z = (final.y*sinf(cam.camdir.x)+final.z*cosf(cam.camdir.x));
+
+        sub_3dvect(final, cam.pos);
+        return final;
+    }
 
     void drawtri(const tri& rti, SkCanvas* window) {
         SkPath path;
         SkPoint* points = new SkPoint[3];
         for (int i = 0; i < 3; i++) {
-            points[i].fX = ((naer_clipping_plane * (rti.tri[i].x-cam.pos.x))/-(rti.tri[i].z-cam.pos.z)) + width / 2;
-            points[i].fY = ((naer_clipping_plane * (rti.tri[i].y-cam.pos.y))/-(rti.tri[i].z-cam.pos.z)) + height / 2;
-            //std::cout << points[i].fX << " " << points[i].fY << std::endl;
+            _3dvect temp = applycam(rti.tri[i]);
+            points[i].fX = (naer_clipping_plane * temp.x / -temp.z) + (width / 2);
+            points[i].fY = (naer_clipping_plane * temp.y / -temp.z) + (height / 2);
+            // std::cout << points[i].fX << " " << points[i].fY << std::endl;
         }
         // std::cout << "Drew triangle\n";
         path.addPoly(points, 3, true);
         SkPaint p;
         p.setAntiAlias(true);
-        _3dvect camdir = cam.camdir.raypoint[1];
+        _3dvect camdir = cam.camdir;
 
-        sub_3dvect(camdir, cam.camdir.raypoint[0]);
+        sub_3dvect(camdir, cam.pos);
         _3dvect verttolight = rti.tri[0];
         sub_3dvect(verttolight, lightsource);
         _3dvect camtovert = rti.tri[0];
         sub_3dvect(camtovert, cam.pos);
-        float dot0 = abs(normalizedot(camtovert,verttolight));
-        //std::cout<<dot0<<std::endl;
-        p.setARGB(255, rti.col.r*dot0,rti.col.g*dot0,rti.col.b*dot0);
+        float dot0 = abs(normalizedot(camtovert, verttolight));
+        // std::cout<<dot0<<std::endl;
+        p.setARGB(255, rti.col.r * dot0, rti.col.g * dot0, rti.col.b * dot0);
         window->drawPath(path, p);
     }
 
-    bool sorttri(const tri& a, const tri& b) { return a.tri[0].z < b.tri[0].z; }
     // builds the 2d pixel array of colors and displayes it to the screen
     void renderscreen(SkCanvas* window) {
-        std::cout << cam.pos.x << " "<< cam.pos.y << " "<< cam.pos.z << " "<< naer_clipping_plane << "\n" ;
-
+        // std::cout << cam.pos.x << " "<< cam.pos.y << " "<< cam.pos.z << " "<< naer_clipping_plane
+        // << "\n" ;
+        if (!isSorted) {
+            std::sort(triworld.begin(), triworld.end(), sort);
+            isSorted = true;
+        }
         height = window->getSurface()->height();
         width = window->getSurface()->width();
         //_3dvect adjustdir = cam.camdir.raypoint[1];
@@ -276,10 +320,10 @@ float naer_clipping_plane = 100.0f;
     };
 
     void setcamangle(float curangle) {
-        cam.camdir.raypoint[1].y = sinf(curangle);
-        cam.camdir.raypoint[1].x = cosf(curangle);
-        add_3dvect(cam.camdir.raypoint[1], cam.pos);
-        cam.camdir = unitvectorofray(cam.camdir);
+        cam.camdir.y = sinf(curangle);
+        cam.camdir.x = cosf(curangle);
+        cam.camdir = unitvector_3dvect(cam.camdir);
+        add_3dvect(cam.camdir, cam.pos);
     }
 
     // returns the color of the object the ray collides with else returns black;

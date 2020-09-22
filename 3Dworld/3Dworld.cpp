@@ -75,28 +75,40 @@ bool _3Dworld::onChar(SkUnichar c, skui::ModifierKey modifiers) {
     switch (c)
     {
     case 'i':
-        curwor.cam.pos.z += 0.2f;
+        curwor.cam.pos.z += 2;
         break;
     case 'j':
-        curwor.cam.pos.x += 0.2f;
+        curwor.cam.pos.x += 2;
         break;
     case 'k':
-        curwor.cam.pos.z += 0.2f;
+        curwor.cam.pos.z -= 2;
         break;
     case 'l':
-        curwor.cam.pos.x -= 0.2f;
+        curwor.cam.pos.x -= 2;
         break;
     case 'u':
-        curwor.cam.pos.y += 0.2f;
+        curwor.cam.pos.y += 2;
         break;
     case 'o':
-        curwor.cam.pos.y -= 0.2f;
+        curwor.cam.pos.y -= 2;
         break;
     case 'p':
         curwor.naer_clipping_plane += 0.2f;
         break;
     case ';':
         curwor.naer_clipping_plane -= 0.2f;
+        break;
+    case 't':
+        curwor.cam.camdir.x += 2;
+        break;
+    case 'g':
+        curwor.cam.camdir.x -= 2;
+        break;
+    case 'f':
+        curwor.cam.camdir.y -= 2;
+        break;
+    case 'h':
+        curwor.cam.camdir.y += 2;
         break;
     default:
         break;
