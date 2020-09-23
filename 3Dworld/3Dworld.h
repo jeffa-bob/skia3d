@@ -212,7 +212,7 @@ bool sort(const tri& a, const tri& b) {
 // class with list of objects to be rendered onto screen; buildarray function renders scene
 class currentworld {
 public:
-    float naer_clipping_plane = 10.0f;
+    float naer_clipping_plane = 20.0f;
     // vector of all of the meshes in the current world
     std::vector<tri> triworld = {
             {{{0, 0, 1000}, {1000, 0, 1000}, {1000, 1000, 1000}},
